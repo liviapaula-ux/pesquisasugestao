@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa iFood Benefícios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fcfcfc; color: #1e293b; }
+        .category-section { border-left: 4px solid #ea1d2c; }
+        .options-line { color: #64748b; font-size: 0.85rem; margin-top: 4px; }
+        @media print {
+            .no-print { display: none; }
+            body { background-color: white; }
+            .category-section { page-break-inside: avoid; border-left: 2px solid #ea1d2c; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Top Bar -->
+    <nav class="bg-white border-b sticky top-0 z-10 no-print">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-[#ea1d2c] rounded flex items-center justify-center text-white font-bold">i</div>
+                <span class="font-bold text-slate-800 tracking-tight">Pesquisa iFood Benefícios</span>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="window.print()" class="text-sm font-medium text-slate-500 hover:text-red-600 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Imprimir / PDF
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-12">
+        <!-- Header -->
+        <header class="mb-12 border-b border-slate-200 pb-8">
+            <h1 class="text-3xl font-extrabold text-slate-900 mb-3 text-center md:text-left">Pesquisa iFood Benefícios</h1>
+            <p class="text-slate-500 text-lg text-center md:text-left font-medium">Roteiro de Dimensões e Perguntas para Aprovação</p>
+        </header>
+
+        <!-- Filter Bar -->
+        <div class="mb-10 no-print">
+            <input type="text" id="filterInput" onkeyup="filterContent()" placeholder="Filtrar por pergunta ou categoria..." class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none transition-all shadow-sm bg-white">
+        </div>
+
+        <!-- Content Container -->
+        <div id="content" class="space-y-12">
+            <!-- As categorias serão injetadas aqui via JS -->
+        </div>
+
+        <div id="emptyState" class="hidden text-center py-20 text-slate-400">
+            Nenhum resultado encontrado para o filtro.
+        </div>
+    </main>
+
+    <script>
+        const questionsData = [
+            { id: 1, cat: "Modelo e Arquitetura", q: "Empresa adota modelo de benefícios flexíveis?", options: "Sim totalmente | Sim parcialmente | Não pacote fixo | Não pacote único" },
+            { id: 2, cat: "Modelo e Arquitetura", q: "Sistema flexível adotado?", options: "Pontos | R$ | Categorias | Cartão multi | Outro" },
+            { id: 4, cat: "Modelo e Arquitetura", q: "Valor médio MENSAL per capita?", options: "≤500 | 501-1k | 1-1.5k | 1.5-2k | 2-2.5k | >2.5k" },
+            { id: 6, cat: "Modelo e Arquitetura", q: "Como gerenciam?", options: "Planilhas | Plataforma operadora | Independente | Próprio" },
+            { id: 8, cat: "Modelo e Arquitetura", q: "Frequência janelas de alteração?", options: "Mensal | Trimestral | Semestral | Anual | Eventos | Livre" },
+            
+            { id: 9, cat: "Plano de Saúde", q: "Operadoras oferecidas?", options: "Bradesco | Unimed | SulAmérica | Amil | NotreDame | Outras" },
+            { id: 13, cat: "Plano de Saúde", q: "Modelo de coparticipação?", options: "0% | Até 20% | 21-30% | Teto fixo em R$ | Não tem" },
+            { id: 17, cat: "Plano de Saúde", q: "Oferece reembolso de consultas?", options: "Sim, ilimitado | Sim, com teto | Não oferece" },
+            { id: 21, cat: "Plano de Saúde", q: "Nível de satisfação com rede credenciada?", options: "Muito Insatisfeito | Insatisfeito | Neutro | Satisfeito | Muito Satisfeito" },
+            
+            { id: 22, cat: "Alimentação e Refeição", q: "Valor diário médio (VR+VA)?", options: "<25 | 26-35 | 36-45 | 46-55 | >55" },
+            { id: 24, cat: "Alimentação e Refeição", q: "Permite transferir saldo entre VA e VR?", options: "Sim, total | Sim, parcial | Não permite" },
+            { id: 26, cat: "Alimentação e Refeição", q: "Flexibilidade para delivery ou supermercados?", options: "Sim, via cartão multi | Sim, via apps parceiros | Não, restrito" },
+            
+            { id: 29, cat: "Seguros e Auxílios", q: "Capital segurado base (Vida)?", options: "12x salário | 24x salário | Valor fixo único | Por escalão" },
+            { id: 33, cat: "Seguros e Auxílios", q: "Paternidade estendida?", options: "Sim 20 dias | Sim 30 dias | Sim >30 dias | Só 5 dias (lei)" },
+            { id: 36, cat: "Seguros e Auxílios", q: "Auxílio creche ou babá?", options: "Até 2 anos | Até 5 anos | Valor fixo p/ todos | Não oferece" },
+            
+            { id: 37, cat: "Saúde e Bem-estar", q: "Oferece auxílio terapia/psicologia?", options: "Sim, plataforma | Sim, reembolso | Não oferece" },
+            { id: 40, cat: "Saúde e Bem-estar", q: "Academia/Esportes?", options: "Gympass/Wellhub | TotalPass | Auxílio R$ | Convênio local | Não tem" },
+            
+            { id: 44, cat: "Incentivos e Lazer", q: "Pratica Short Friday ou Day off aniversário?", options: "Ambos | Apenas Short Friday | Apenas Day Off | Nenhum" },
+            { id: 47, cat: "Incentivos e Lazer", q: "Clube de benefícios e descontos?", options: "Sim próprio | Sim parceiro (Allya/etc) | Não possui" },
+            
+            { id: 48, cat: "Cultura e Educação", q: "Subsídio para idiomas ou cursos?", options: "100% bolsa | 50-70% bolsa | Parceria desconto | Não tem" },
+            { id: 51, cat: "Cultura e Educação", q: "Licença remunerada para estudos?", options: "Sim, curta duração | Sim, sabático | Não oferece" },
+            
+            { id: 54, cat: "Logística e Trabalho", q: "Ajuda de custo mensal Home Office?", options: "<80 | 81-120 | 121-180 | >180 | Não tem" },
+            { id: 62, cat: "Logística e Trabalho", q: "Auxílio Combustível / Mobilidade?", options: "Cartão mobilidade | Reembolso KM | Fixo folha | Não tem" },
+            
+            { id: 71, cat: "Comunicação e Experiência", q: "Benefícios explicados no onboarding?", options: "Sim palestra | Sim vídeo | Sim material digital | Sim planilha | Não" },
+            { id: 74, cat: "Comunicação e Experiência", q: "NPS médio dos benefícios?", options: "Detratores 0-6 | Neutros 7-8 | Promotores 9-10 | Não mede" },
+            
+            { id: 78, cat: "Insights Estratégicos", q: "3 maiores desafios na gestão?", options: "Custo | Adesão | Comunicação | Complexidade | ROI | Outros" },
+            { id: 79, cat: "Insights Estratégicos", q: "Mudanças previstas para 2026?", options: "Aumento orçamento | Novos benefícios | Mais flexibilidade | Cortes | Manutenção" },
+            { id: 81, cat: "Insights Estratégicos", q: "Se pudesse mudar UMA COISA, o que seria?", options: "RESPOSTA ABERTA" }
+        ];
+
+        function render() {
+            const container = document.getElementById('content');
+            const categories = [...new Set(questionsData.map(item => item.cat))];
+            container.innerHTML = '';
+
+            categories.forEach(cat => {
+                const catQuestions = questionsData.filter(q => q.cat === cat);
+                
+                const section = document.createElement('section');
+                section.className = 'category-section bg-white p-6 md:p-8 rounded-r-xl shadow-sm border border-slate-100';
+                section.dataset.categoryName = cat.toLowerCase();
+
+                let questionsHtml = catQuestions.map(q => `
+                    <div class="question-block py-5 border-b border-slate-50 last:border-0">
+                        <div class="flex gap-4">
+                            <span class="text-slate-300 font-mono text-xs mt-1">#${String(q.id).padStart(2, '0')}</span>
+                            <div>
+                                <p class="text-slate-800 font-semibold leading-tight mb-1">${q.q}</p>
+                                <p class="options-line">${q.options}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                section.innerHTML = `
+                    <h2 class="text-[#ea1d2c] font-bold text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-[#ea1d2c] rounded-full"></span>
+                        ${cat}
+                    </h2>
+                    <div class="space-y-1">
+                        ${questionsHtml}
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        function filterContent() {
+            const input = document.getElementById('filterInput').value.toLowerCase();
+            const blocks = document.querySelectorAll('.question-block');
+            const sections = document.querySelectorAll('.category-section');
+            let hasAnyVisible = false;
+
+            blocks.forEach(block => {
+                const text = block.innerText.toLowerCase();
+                if (text.includes(input)) {
+                    block.style.display = 'block';
+                    hasAnyVisible = true;
+                } else {
+                    block.style.display = 'none';
+                }
+            });
+
+            sections.forEach(section => {
+                const visibleBlocks = section.querySelectorAll('.question-block[style="display: block;"]');
+                section.style.display = (visibleBlocks.length > 0 || input === "") ? 'block' : 'none';
+            });
+
+            document.getElementById('emptyState').classList.toggle('hidden', hasAnyVisible || input === "");
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
